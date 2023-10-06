@@ -48,7 +48,7 @@ export class UserModel {
 
 		await this.db.run("INSERT INTO users (name, email) VALUES (?, ?)", user.name, user.email);
 
-		return { ...user };
+		return user;
 	}
 
 	async getAllUsers(): Promise<User[]> {
@@ -89,7 +89,17 @@ export class UserModel {
 			user.id
 		);
 
-		return { ...user };
+		return user;
+	}
+
+	async getUserByToken(token: string): Promise<User | undefined> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const user = await this.db.get("SELECT * FROM users WHERE token = ?", token);
+
+		return user;
 	}
 }
 
