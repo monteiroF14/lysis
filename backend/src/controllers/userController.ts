@@ -1,55 +1,52 @@
 import { Request, Response } from "express";
-import { UserModel } from "../models/userModel";
+import userModel from "../models/userModel";
+import { User } from "src/types/User";
 
-export class UserController {
-	constructor(private userModel: UserModel) {}
-
-	async getAllUsers(req: Request, res: Response) {
-		const users = await this.userModel.getAllUsers();
-		res.json(users);
+class UserController {
+	async createUser(req: Request, res: Response): Promise<void> {
+		try {
+			const userData: User = req.body;
+			const newUser = await userModel.createUser(userData);
+			res.status(201).json(newUser);
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ message: "Failed to create user" });
+		}
 	}
 
-	async getUserById(req: Request, res: Response) {
+	async getAllUsers(req: Request, res: Response): Promise<void> {
+		try {
+			const users = await userModel.getAllUsers();
+			res.json(users);
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ message: "Failed to fetch users" });
+		}
+	}
+
+	async getUserById(req: Request, res: Response): Promise<void> {
 		const userId = parseInt(req.params.id, 10);
-		const user = await this.userModel.getUserById(userId);
+		const user = await userModel.getUserById(userId);
 
 		if (!user) {
-			return res.status(404).json({ message: "User not found" });
+			res.status(404).json({ message: "User not found" });
+			return;
 		}
 
 		res.json(user);
 	}
 
-	async createUser(req: Request, res: Response) {
-		const newUser = req.body;
-
-		if (!newUser.name || !newUser.email) {
-			return res.status(400).json({ message: "Invalid request" });
-		}
+	async deleteUser(req: Request, res: Response): Promise<void> {
+		const userId = parseInt(req.params.id, 10);
 
 		try {
-			await this.userModel.createUser(newUser);
-			res.status(201).json(newUser);
+			await userModel.deleteUser(userId);
+			res.status(204).end();
 		} catch (error) {
-			res.status(500).json({ message: "Internal server error" });
+			console.error(error);
+			res.status(500).json({ message: "Failed to delete user" });
 		}
-	}
-
-	async updateUser(req: Request, res: Response) {
-		const userId = parseInt(req.params.id, 10);
-		const updatedUser = req.body;
-
-		if (!updatedUser.name || !updatedUser.email) {
-			return res.status(400).json({ message: "Invalid request" });
-		}
-
-		await this.userModel.updateUser(userId, updatedUser);
-		res.json(updatedUser);
-	}
-
-	async deleteUser(req: Request, res: Response) {
-		const userId = parseInt(req.params.id, 10);
-		await this.userModel.deleteUser(userId);
-		res.status(204).send();
 	}
 }
+
+export default new UserController();

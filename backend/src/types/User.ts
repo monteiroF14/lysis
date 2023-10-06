@@ -5,6 +5,7 @@ import { UserData } from "./UserData";
 export class User {
 	public readonly name: Name;
 	public readonly email: Email;
+	public id: number | undefined;
 
 	private constructor(name: Name, email: Email) {
 		this.name = name;
@@ -19,7 +20,11 @@ export class User {
 
 			return new User(name, email);
 		} catch (error) {
-			throw error("error: ", error.message);
+			if (error instanceof Error && error.message) {
+				console.error(error.message);
+			}
+
+			throw new Error("Failed to create user");
 		}
 	}
 }
