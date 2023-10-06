@@ -1,6 +1,3 @@
-import { Either, left, right } from "../../shared/either";
-import { InvalidEmailError } from "./errors/invalid-email";
-
 export class Email {
 	private readonly email: string;
 
@@ -9,11 +6,11 @@ export class Email {
 		Object.freeze(this);
 	}
 
-	static create(email: string): Either<InvalidEmailError, Email> {
+	static create(email: string): Email {
 		if (!Email.validate(email)) {
-			return left(new InvalidEmailError(email));
+			throw new Error(`Invalid email: ${email}`);
 		}
-		return right(new Email(email));
+		return new Email(email);
 	}
 
 	get value(): string {

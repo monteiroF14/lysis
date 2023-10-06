@@ -1,9 +1,6 @@
-// userController.ts
-
 import { Request, Response } from "express";
 import { UserModel } from "../models/userModel";
 
-// Example controller for user-related routes
 export class UserController {
 	constructor(private userModel: UserModel) {}
 
@@ -26,20 +23,22 @@ export class UserController {
 	async createUser(req: Request, res: Response) {
 		const newUser = req.body;
 
-		// Validate the request body here (e.g., check if required fields are present)
 		if (!newUser.name || !newUser.email) {
 			return res.status(400).json({ message: "Invalid request" });
 		}
 
-		await this.userModel.createUser(newUser);
-		res.status(201).json(newUser);
+		try {
+			await this.userModel.createUser(newUser);
+			res.status(201).json(newUser);
+		} catch (error) {
+			res.status(500).json({ message: "Internal server error" });
+		}
 	}
 
 	async updateUser(req: Request, res: Response) {
 		const userId = parseInt(req.params.id, 10);
 		const updatedUser = req.body;
 
-		// Validate the request body here (e.g., check if required fields are present)
 		if (!updatedUser.name || !updatedUser.email) {
 			return res.status(400).json({ message: "Invalid request" });
 		}

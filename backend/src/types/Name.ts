@@ -1,6 +1,3 @@
-import { Either, left, right } from "../../shared/either";
-import { InvalidNameError } from "./errors/invalid-name";
-
 export class Name {
 	private readonly name: string;
 
@@ -9,11 +6,11 @@ export class Name {
 		Object.freeze(this);
 	}
 
-	static create(name: string): Either<InvalidNameError, Name> {
+	static create(name: string): Name {
 		if (!Name.validate(name)) {
-			return left(new InvalidNameError(name));
+			throw new Error(`Invalid name: ${name}`);
 		}
-		return right(new Name(name));
+		return new Name(name);
 	}
 
 	get value(): string {

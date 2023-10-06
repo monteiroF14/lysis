@@ -1,9 +1,6 @@
-// userModel.ts
-
 import { Database } from "sqlite";
-import { User } from "src/types/User";
+import { User } from "../types/User";
 
-// Example model for interacting with the "users" table
 export class UserModel {
 	constructor(private db: Database) {}
 

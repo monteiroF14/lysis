@@ -1,5 +1,6 @@
 import { Email } from "./Email";
 import { Name } from "./Name";
+import { UserData } from "./UserData";
 
 export class User {
 	public readonly name: Name;
@@ -11,17 +12,14 @@ export class User {
 		Object.freeze(this);
 	}
 
-	static create(userData: UserData): Either<InvalidNameError | InvalidEmailError, User> {
-		const nameOrError: Either<InvalidNameError, Name> = Name.create(userData.name);
-		const emailOrError: Either<InvalidEmailError, Email> = Email.create(userData.email);
-		if (nameOrError.isLeft()) {
-			return left(nameOrError.value);
+	static create(userData: UserData): User {
+		try {
+			const name = Name.create(userData.name);
+			const email = Email.create(userData.email);
+
+			return new User(name, email);
+		} catch (error) {
+			throw error("error: ", error.message);
 		}
-		if (emailOrError.isLeft()) {
-			return left(emailOrError.value);
-		}
-		const name: Name = nameOrError.value;
-		const email: Email = emailOrError.value;
-		return right(new User(name, email));
 	}
 }
