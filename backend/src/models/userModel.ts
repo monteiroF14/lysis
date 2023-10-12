@@ -1,6 +1,6 @@
 import { Database, open } from "sqlite";
-import sqlite3 from "sqlite3";
-import { User } from "../types/User";
+import { User } from "../types/user/User";
+import config from "../config";
 
 export class UserModel {
 	private db: Database | null = null;
@@ -12,16 +12,16 @@ export class UserModel {
 	async connect() {
 		try {
 			this.db = await open({
-				filename: "./src/database/database.db",
-				driver: sqlite3.Database,
+				filename: config.database.sqlite.filename,
+				driver: config.database.sqlite.driver,
 			});
-			await this.createTableIfNotExists();
+			await this.createUserTableIfNotExists();
 		} catch (error) {
 			console.error("Error connecting to the database:", error);
 		}
 	}
 
-	async createTableIfNotExists() {
+	async createUserTableIfNotExists() {
 		if (!this.db) {
 			throw new Error("Database not connected");
 		}
@@ -33,9 +33,11 @@ export class UserModel {
 		if (!tableExists) {
 			await this.db.run(`
 				CREATE TABLE users (
-					id INTEGER PRIMARY KEY AUTO_INCREMENT,
-					name TEXT NOT NULL,
-					email TEXT NOT NULL
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					username TEXT NOT NULL,
+					email TEXT NOT NULL,
+					password TEXT NOT NULL,
+					refresh_token TEXT
 				)
 			`);
 		}
@@ -46,8 +48,14 @@ export class UserModel {
 			throw new Error("Database not connected");
 		}
 
-		await this.db.run("INSERT INTO users (name, email) VALUES (?, ?)", user.name, user.email);
+		const result = await this.db.run(
+			"INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+			user.username,
+			user.email,
+			user.getPassword
+		);
 
+		user.addDbID = result.lastID!;
 		return user;
 	}
 
@@ -56,7 +64,7 @@ export class UserModel {
 			throw new Error("Database not connected");
 		}
 
-		const users = await this.db.all("SELECT * FROM users");
+		const users = await this.db.all("SELECT username, email, id FROM users");
 		return users;
 	}
 
@@ -65,7 +73,16 @@ export class UserModel {
 			throw new Error("Database not connected");
 		}
 
-		const user = await this.db.get("SELECT * FROM users WHERE id = ?", id);
+		const user = await this.db.get("SELECT username, email, id FROM users WHERE id = ?", id);
+		return user;
+	}
+
+	async getUserByEmail(email: string): Promise<User | undefined> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const user = await this.db.get("SELECT username, email, id FROM users WHERE email = ?", email);
 		return user;
 	}
 
@@ -83,8 +100,8 @@ export class UserModel {
 		}
 
 		await this.db.run(
-			"UPDATE users SET name = ?, email = ? WHERE id = ?",
-			user.name,
+			"UPDATE users SET username = ?, email = ? WHERE id = ?",
+			user.username,
 			user.email,
 			user.id
 		);
@@ -92,14 +109,44 @@ export class UserModel {
 		return user;
 	}
 
-	async getUserByToken(token: string): Promise<User | undefined> {
+	async addRefreshTokenToUser({
+		token,
+		userId,
+	}: {
+		token: string;
+		userId: number;
+	}): Promise<User | undefined> {
 		if (!this.db) {
 			throw new Error("Database not connected");
 		}
 
-		const user = await this.db.get("SELECT * FROM users WHERE token = ?", token);
+		const user = await this.db.get(
+			"UPDATE users SET refresh_token = ? WHERE id = ?",
+			token,
+			userId
+		);
+		return user;
+	}
+
+	async getUserByRefreshToken(token: string): Promise<User | undefined> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const user = await this.db.get(
+			"SELECT username, email, id FROM users WHERE refresh_token = ?",
+			token
+		);
 
 		return user;
+	}
+
+	async removeRefreshTokenFromUser(userId: number): Promise<void> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		await this.db.run("UPDATE users SET refresh_token = NULL WHERE id = ?", userId);
 	}
 }
 
