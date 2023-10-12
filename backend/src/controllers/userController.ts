@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
-import userModel from "../models/userModel";
-import { User } from "src/types/User";
+import UserModel from "src/models/UserModel";
+import { User } from "src/types/user/User";
 
 class UserController {
-	async createUser(req: Request, res: Response): Promise<void> {
+	async createUser(req: Request, res: Response, userData: User): Promise<void> {
 		try {
-			const userData: User = req.body;
-			const newUser = await userModel.createUser(userData);
+			const newUser = await UserModel.createUser(userData);
 			res.status(201).json(newUser);
 		} catch (error) {
 			console.error(error);
@@ -16,7 +15,7 @@ class UserController {
 
 	async getAllUsers(req: Request, res: Response): Promise<void> {
 		try {
-			const users = await userModel.getAllUsers();
+			const users = await UserModel.getAllUsers();
 			res.json(users);
 		} catch (error) {
 			console.error(error);
@@ -26,7 +25,7 @@ class UserController {
 
 	async getUserById(req: Request, res: Response): Promise<void> {
 		const userId = parseInt(req.params.id, 10);
-		const user = await userModel.getUserById(userId);
+		const user = await UserModel.getUserById(userId);
 
 		if (!user) {
 			res.status(404).json({ message: "User not found" });
@@ -40,7 +39,7 @@ class UserController {
 		const userId = parseInt(req.params.id, 10);
 
 		try {
-			await userModel.deleteUser(userId);
+			await UserModel.deleteUser(userId);
 			res.status(204).end();
 		} catch (error) {
 			console.error(error);
