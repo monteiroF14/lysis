@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import UserModel from "../models/userModel";
+import UserModel from "../models/UserModel";
 
 const router = Router();
 
@@ -62,4 +62,4 @@ router
 		}
 	});
 
-export { router as userRouter };
+export { router as userRoutes };
