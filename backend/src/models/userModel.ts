@@ -1,34 +1,153 @@
-// userModel.ts
+import { Database, open } from "sqlite";
+import { User } from "../types/user/User";
+import config from "../config";
 
-import { Database } from "sqlite";
-import { User } from "src/types/User";
-
-// Example model for interacting with the "users" table
 export class UserModel {
-	constructor(private db: Database) {}
+	private db: Database | null = null;
+
+	constructor() {
+		this.connect();
+	}
+
+	async connect() {
+		try {
+			this.db = await open({
+				filename: config.database.sqlite.filename,
+				driver: config.database.sqlite.driver,
+			});
+			await this.createUserTableIfNotExists();
+		} catch (error) {
+			console.error("Error connecting to the database:", error);
+		}
+	}
+
+	async createUserTableIfNotExists() {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const tableExists = await this.db.get(
+			"SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+		);
+
+		if (!tableExists) {
+			await this.db.run(`
+				CREATE TABLE users (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					username TEXT NOT NULL,
+					email TEXT NOT NULL,
+					password TEXT NOT NULL,
+					refresh_token TEXT
+				)
+			`);
+		}
+	}
+
+	async createUser(user: User): Promise<User> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const result = await this.db.run(
+			"INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+			user.username,
+			user.email,
+			user.getPassword
+		);
+
+		user.addDbID = result.lastID!;
+		return user;
+	}
 
 	async getAllUsers(): Promise<User[]> {
-		return this.db.all("SELECT * FROM users");
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const users = await this.db.all("SELECT username, email, id FROM users");
+		return users;
 	}
 
 	async getUserById(id: number): Promise<User | undefined> {
-		return this.db.get("SELECT * FROM users WHERE id = ?", id);
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const user = await this.db.get("SELECT username, email, id FROM users WHERE id = ?", id);
+		return user;
 	}
 
-	async createUser(user: User): Promise<void> {
-		await this.db.run("INSERT INTO users (name, email) VALUES (?, ?)", user.name, user.email);
-	}
+	async getUserByEmail(email: string): Promise<User | undefined> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
 
-	async updateUser(id: number, user: User): Promise<void> {
-		await this.db.run(
-			"UPDATE users SET name = ?, email = ? WHERE id = ?",
-			user.name,
-			user.email,
-			id
-		);
+		const user = await this.db.get("SELECT username, email, id FROM users WHERE email = ?", email);
+		return user;
 	}
 
 	async deleteUser(id: number): Promise<void> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
 		await this.db.run("DELETE FROM users WHERE id = ?", id);
 	}
+
+	async updateUser(id: number, user: User): Promise<User> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		await this.db.run(
+			"UPDATE users SET username = ?, email = ? WHERE id = ?",
+			user.username,
+			user.email,
+			user.id
+		);
+
+		return user;
+	}
+
+	async addRefreshTokenToUser({
+		token,
+		userId,
+	}: {
+		token: string;
+		userId: number;
+	}): Promise<User | undefined> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const user = await this.db.get(
+			"UPDATE users SET refresh_token = ? WHERE id = ?",
+			token,
+			userId
+		);
+		return user;
+	}
+
+	async getUserByRefreshToken(token: string): Promise<User | undefined> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		const user = await this.db.get(
+			"SELECT username, email, id FROM users WHERE refresh_token = ?",
+			token
+		);
+
+		return user;
+	}
+
+	async removeRefreshTokenFromUser(userId: number): Promise<void> {
+		if (!this.db) {
+			throw new Error("Database not connected");
+		}
+
+		await this.db.run("UPDATE users SET refresh_token = NULL WHERE id = ?", userId);
+	}
 }
+
+export default new UserModel();

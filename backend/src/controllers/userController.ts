@@ -1,56 +1,51 @@
-// userController.ts
+import type { Request, Response } from "express";
+import UserModel from "../models/UserModel";
+import { User } from "../types/user/User";
 
-import { Request, Response } from "express";
-import { UserModel } from "../models/userModel";
-
-// Example controller for user-related routes
-export class UserController {
-	constructor(private userModel: UserModel) {}
-
-	async getAllUsers(req: Request, res: Response) {
-		const users = await this.userModel.getAllUsers();
-		res.json(users);
+class UserController {
+	async createUser(req: Request, res: Response, userData: User): Promise<void> {
+		try {
+			const newUser = await UserModel.createUser(userData);
+			res.status(201).json(newUser);
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ message: "Failed to create user" });
+		}
 	}
 
-	async getUserById(req: Request, res: Response) {
-		const userId = parseInt(req.params.id, 10);
-		const user = await this.userModel.getUserById(userId);
+	async getAllUsers(req: Request, res: Response): Promise<void> {
+		try {
+			const users = await UserModel.getAllUsers();
+			res.json(users);
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ message: "Failed to fetch users" });
+		}
+	}
+
+	async getUserById(req: Request, res: Response): Promise<void> {
+		const userId = parseInt(req.params.id!, 10);
+		const user = await UserModel.getUserById(userId);
 
 		if (!user) {
-			return res.status(404).json({ message: "User not found" });
+			res.status(404).json({ message: "User not found" });
+			return;
 		}
 
 		res.json(user);
 	}
 
-	async createUser(req: Request, res: Response) {
-		const newUser = req.body;
+	async deleteUser(req: Request, res: Response): Promise<void> {
+		const userId = parseInt(req.params.id!, 10);
 
-		// Validate the request body here (e.g., check if required fields are present)
-		if (!newUser.name || !newUser.email) {
-			return res.status(400).json({ message: "Invalid request" });
+		try {
+			await UserModel.deleteUser(userId);
+			res.status(204).end();
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ message: "Failed to delete user" });
 		}
-
-		await this.userModel.createUser(newUser);
-		res.status(201).json(newUser);
-	}
-
-	async updateUser(req: Request, res: Response) {
-		const userId = parseInt(req.params.id, 10);
-		const updatedUser = req.body;
-
-		// Validate the request body here (e.g., check if required fields are present)
-		if (!updatedUser.name || !updatedUser.email) {
-			return res.status(400).json({ message: "Invalid request" });
-		}
-
-		await this.userModel.updateUser(userId, updatedUser);
-		res.json(updatedUser);
-	}
-
-	async deleteUser(req: Request, res: Response) {
-		const userId = parseInt(req.params.id, 10);
-		await this.userModel.deleteUser(userId);
-		res.status(204).send();
 	}
 }
+
+export default new UserController();
