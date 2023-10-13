@@ -1,8 +1,9 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/UserModel";
-import { User, UserData } from "../types/user/User";
-import { Email } from "src/types/user/Email";
+import { User, type UserData } from "../types/user/User";
+import type { Email } from "../types/user/Email";
 
 const router = Router();
 

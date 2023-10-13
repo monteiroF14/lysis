@@ -1,6 +1,6 @@
-import jwt, { VerifyErrors } from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
-import { User } from "src/types/user/User";
+import jwt, { type VerifyErrors } from "jsonwebtoken";
+import type { Request, Response, NextFunction } from "express";
+import { User } from "../types/user/User";
 
 interface RequestUserAuth extends Request {
 	user: User;

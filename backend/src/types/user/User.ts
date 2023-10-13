@@ -39,7 +39,7 @@ export class User {
 	}
 
 	static getUsername(email: string): string {
-		return email.split("@")[0];
+		return email.split("@")[0] || "";
 	}
 
 	changePassword(newPassword: string): void | Error {

@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import UserModel from "src/models/UserModel";
-import { User } from "src/types/user/User";
+import type { Request, Response } from "express";
+import UserModel from "../models/UserModel";
+import { User } from "../types/user/User";
 
 class UserController {
 	async createUser(req: Request, res: Response, userData: User): Promise<void> {
@@ -24,7 +24,7 @@ class UserController {
 	}
 
 	async getUserById(req: Request, res: Response): Promise<void> {
-		const userId = parseInt(req.params.id, 10);
+		const userId = parseInt(req.params.id!, 10);
 		const user = await UserModel.getUserById(userId);
 
 		if (!user) {
@@ -36,7 +36,7 @@ class UserController {
 	}
 
 	async deleteUser(req: Request, res: Response): Promise<void> {
-		const userId = parseInt(req.params.id, 10);
+		const userId = parseInt(req.params.id!, 10);
 
 		try {
 			await UserModel.deleteUser(userId);

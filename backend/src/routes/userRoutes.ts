@@ -1,4 +1,5 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import UserModel from "../models/UserModel";
 
 const router = Router();
@@ -28,7 +29,7 @@ router
 router
 	.route("/:id")
 	.get(async (req: Request, res: Response) => {
-		const userId = parseInt(req.params.id, 10);
+		const userId = parseInt(req.params.id!, 10);
 		const user = await UserModel.getUserById(userId);
 
 		if (!user) {
@@ -39,7 +40,7 @@ router
 		res.json(user);
 	})
 	.delete(async (req: Request, res: Response) => {
-		const userId = parseInt(req.params.id, 10);
+		const userId = parseInt(req.params.id!, 10);
 
 		try {
 			await UserModel.deleteUser(userId);
@@ -50,7 +51,7 @@ router
 		}
 	})
 	.put(async (req: Request, res: Response) => {
-		const userId = parseInt(req.params.id, 10);
+		const userId = parseInt(req.params.id!, 10);
 		const userData = req.body;
 
 		try {

@@ -30,6 +30,11 @@ export class Email {
 			return false;
 		}
 		const [account, address] = email.split("@");
+
+		if (!account || !address) {
+			return false;
+		}
+
 		if (account.length > 64) {
 			return false;
 		}

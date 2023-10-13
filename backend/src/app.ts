@@ -1,5 +1,5 @@
-import express, { Express, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import express from "express";
+import type { Express } from "express";
 import dotenv from "dotenv";
 import config from "./config";
 import router from "./routes/router";
