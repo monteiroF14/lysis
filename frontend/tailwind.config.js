@@ -1,8 +1,13 @@
-/** @type {import('tailwindcss').Config} */
+import { type Config } from "tailwindcss";
+
 export default {
-	content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-	theme: {
-		extend: {},
-	},
-	plugins: [],
-};
+  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        montserrat: ["Montserrat"],
+        inter: ["Inter"],
+      },
+    },
+  },
+} satisfies Config;
