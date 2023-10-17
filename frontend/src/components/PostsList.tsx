@@ -1,8 +1,6 @@
 import { Post } from "./Post";
 import { fetchAllPosts } from "@/hooks/fetchPosts";
 
-export const revalidate = 60;
-
 export async function PostsList() {
 	try {
 		const { data: posts, error } = await fetchAllPosts();
