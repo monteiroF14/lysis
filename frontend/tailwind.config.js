@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        montserrat: ["Montserrat"],
-        inter: ["Inter"],
+        inter: ["Inter", "sans"],
+        montserrat: ["Montserrat", "sans"]
       },
     },
   },
