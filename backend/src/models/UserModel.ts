@@ -1,7 +1,8 @@
 import { SupabaseClient, type PostgrestResponse } from "@supabase/supabase-js";
 import User from "../types/user/User";
-import { DatabaseError } from "../types/database/DatabaseError";
+import { DatabaseError } from "../types/database/error";
 import config from "../config";
+import type { SYSTEM_ROLES } from "../config/permissions";
 
 class UserModel {
 	private supabase: SupabaseClient;
@@ -102,6 +103,18 @@ class UserModel {
 
 		if (error !== null) {
 			return new DatabaseError(`Failed to delete user with ID: ${error.message}`, "DB_ERROR");
+		}
+	}
+
+	async updateUserRole(id: number, role: keyof typeof SYSTEM_ROLES) {
+		if (!id || !role) {
+			return new DatabaseError("ID and role are required", "MISSING_ID_ROLE");
+		}
+
+		const { error } = await this.supabase.from("users").update({ role }).eq("id", id);
+
+		if (error !== null) {
+			return new DatabaseError(`Failed to update user role: ${error.message}`);
 		}
 	}
 

@@ -3,7 +3,7 @@ import type { Email } from "../types/user/Email";
 import UserModel from "../models/UserModel";
 import type { Request, Response } from "express";
 import User, { type UserData } from "../types/user/User";
-import { DatabaseError } from "../types/database/DatabaseError";
+import { DatabaseError } from "../types/database/error";
 
 class AuthController {
 	register = async (req: Request, res: Response) => {

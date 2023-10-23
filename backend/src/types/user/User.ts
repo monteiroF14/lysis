@@ -1,3 +1,4 @@
+import { PERMISSIONS, ROLE_PERMISSIONS, SYSTEM_ROLES } from "../../config/permissions";
 import { Email } from "./Email";
 import { Password } from "./Password";
 
@@ -8,6 +9,8 @@ export type UserData = {
 };
 
 class User {
+	protected role = SYSTEM_ROLES.APPLICATION_USER;
+
 	public readonly username: string;
 	public readonly email: Email;
 	private _password?: Password;
@@ -87,6 +90,10 @@ class User {
 		}
 
 		return Password.compare(userPassword, candidatePassword);
+	}
+
+	hasPermission(permission: PERMISSIONS): boolean {
+		return ROLE_PERMISSIONS[this.role].includes(permission);
 	}
 }
 
