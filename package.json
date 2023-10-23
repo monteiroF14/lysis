@@ -2,8 +2,8 @@
 	"name": "lysis",
 	"version": "1.0.0",
 	"scripts": {
-		"dev:backend": "cd backend && npm run start",
-		"dev:frontend": "cd frontend && npm run start",
+		"dev:backend": "cd backend && npm install && npm run dev",
+		"dev:frontend": "cd frontend && npm install && npm run start",
 		"dev": "concurrently npm:dev:backend npm:dev:frontend"
 	},
 	"author": "monteiroF14",

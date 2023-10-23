@@ -1,153 +1,166 @@
-import { Database, open } from "sqlite";
-import { User } from "../types/user/User";
+import { SupabaseClient, type PostgrestResponse } from "@supabase/supabase-js";
+import User from "../types/user/User";
+import { DatabaseError } from "../types/database/DatabaseError";
 import config from "../config";
 
-export class UserModel {
-	private db: Database | null = null;
+class UserModel {
+	private supabase: SupabaseClient;
 
-	constructor() {
-		this.connect();
+	constructor(supabase: SupabaseClient) {
+		this.supabase = supabase;
 	}
 
-	async connect() {
-		try {
-			this.db = await open({
-				filename: config.database.sqlite.filename,
-				driver: config.database.sqlite.driver,
-			});
-			await this.createUserTableIfNotExists();
-		} catch (error) {
-			console.error("Error connecting to the database:", error);
+	async createUser(user: User): Promise<User | DatabaseError> {
+		if (!user) {
+			return new DatabaseError("User is required", "MISSING_USER");
 		}
+
+		if (!user.password || !user.email) {
+			return new DatabaseError(
+				"Both password and email are required",
+				"MISSING_PASSWORD_AND_EMAIL"
+			);
+		}
+
+		const userObject = user.toDatabaseObject();
+
+		const { data, error } = await this.supabase.from("users").insert([userObject]).select();
+
+		if (error !== null) {
+			return new DatabaseError(`Failed to create user: ${error.message}`, "DB_ERROR");
+		}
+
+		if (data === null) {
+			return new DatabaseError("Failed to create user: No data returned", "DB_ERROR");
+		}
+
+		return data[0]!;
 	}
 
-	async createUserTableIfNotExists() {
-		if (!this.db) {
-			throw new Error("Database not connected");
+	async getAllUsers(): Promise<User[] | DatabaseError> {
+		const { data, error } = await this.supabase.from("users").select("*");
+
+		if (error !== null) {
+			return new DatabaseError(`Failed to retrieve users: ${error.message}`, "DB_ERROR");
 		}
 
-		const tableExists = await this.db.get(
-			"SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
-		);
-
-		if (!tableExists) {
-			await this.db.run(`
-				CREATE TABLE users (
-					id INTEGER PRIMARY KEY AUTOINCREMENT,
-					username TEXT NOT NULL,
-					email TEXT NOT NULL,
-					password TEXT NOT NULL,
-					refresh_token TEXT
-				)
-			`);
+		if (data === null) {
+			return new DatabaseError("Failed to retrieve users", "DB_ERROR");
 		}
+
+		return data;
 	}
 
-	async createUser(user: User): Promise<User> {
-		if (!this.db) {
-			throw new Error("Database not connected");
+	async getUserById(id: number): Promise<User | DatabaseError> {
+		if (!id) {
+			return new DatabaseError("ID is required", "MISSING_ID");
 		}
 
-		const result = await this.db.run(
-			"INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-			user.username,
-			user.email,
-			user.getPassword
-		);
+		const { data, error }: PostgrestResponse<User> = await this.supabase
+			.from("users")
+			.select("*")
+			.eq("id", id);
 
-		user.addDbID = result.lastID!;
-		return user;
+		if (error !== null || data === null) {
+			return new DatabaseError(`Failed to retrieve user by ID: ${error.message}`, "DB_ERROR");
+		}
+
+		if (data.length > 0) {
+			return new DatabaseError("User not found", "USER_NOT_FOUND");
+		}
+
+		return data[0]!;
 	}
 
-	async getAllUsers(): Promise<User[]> {
-		if (!this.db) {
-			throw new Error("Database not connected");
+	async getUserByEmail(email: string): Promise<User | DatabaseError> {
+		if (!email) {
+			return new DatabaseError("Email is required", "MISSING_EMAIL");
 		}
 
-		const users = await this.db.all("SELECT username, email, id FROM users");
-		return users;
+		const { data, error }: PostgrestResponse<User> = await this.supabase
+			.from("users")
+			.select("*")
+			.eq("email", email);
+
+		if (error !== null || data === null) {
+			return new DatabaseError(`Failed to retrieve user by email: ${error.message}`, "DB_ERROR");
+		}
+
+		if (data.length > 0) {
+			return new DatabaseError("User not found", "USER_NOT_FOUND");
+		}
+
+		return data[0]!;
 	}
 
-	async getUserById(id: number): Promise<User | undefined> {
-		if (!this.db) {
-			throw new Error("Database not connected");
+	async deleteUser(id: number): Promise<void | DatabaseError> {
+		if (!id) {
+			return new DatabaseError("ID is required", "MISSING_ID");
 		}
 
-		const user = await this.db.get("SELECT username, email, id FROM users WHERE id = ?", id);
-		return user;
-	}
+		const { error } = await this.supabase.from("users").delete().eq("id", id);
 
-	async getUserByEmail(email: string): Promise<User | undefined> {
-		if (!this.db) {
-			throw new Error("Database not connected");
+		if (error !== null) {
+			return new DatabaseError(`Failed to delete user with ID: ${error.message}`, "DB_ERROR");
 		}
-
-		const user = await this.db.get("SELECT username, email, id FROM users WHERE email = ?", email);
-		return user;
-	}
-
-	async deleteUser(id: number): Promise<void> {
-		if (!this.db) {
-			throw new Error("Database not connected");
-		}
-
-		await this.db.run("DELETE FROM users WHERE id = ?", id);
-	}
-
-	async updateUser(id: number, user: User): Promise<User> {
-		if (!this.db) {
-			throw new Error("Database not connected");
-		}
-
-		await this.db.run(
-			"UPDATE users SET username = ?, email = ? WHERE id = ?",
-			user.username,
-			user.email,
-			user.id
-		);
-
-		return user;
 	}
 
 	async addRefreshTokenToUser({
 		token,
-		userId,
+		id,
 	}: {
 		token: string;
-		userId: number;
-	}): Promise<User | undefined> {
-		if (!this.db) {
-			throw new Error("Database not connected");
+		id: number;
+	}): Promise<void | DatabaseError> {
+		if (!token || !id) {
+			return new DatabaseError("Token and ID are required", "MISSING_TOKEN_ID");
 		}
 
-		const user = await this.db.get(
-			"UPDATE users SET refresh_token = ? WHERE id = ?",
-			token,
-			userId
-		);
-		return user;
+		const { error } = await this.supabase
+			.from("users")
+			.update({ refresh_token: token })
+			.eq("id", id);
+
+		if (error !== null) {
+			return new DatabaseError(`Failed to add token to user with ID: ${error.message}`, "DB_ERROR");
+		}
 	}
 
-	async getUserByRefreshToken(token: string): Promise<User | undefined> {
-		if (!this.db) {
-			throw new Error("Database not connected");
+	async getUserByRefreshToken(token: string): Promise<User | DatabaseError> {
+		if (!token) {
+			return new DatabaseError("Token is required", "MISSING_TOKEN");
 		}
 
-		const user = await this.db.get(
-			"SELECT username, email, id FROM users WHERE refresh_token = ?",
-			token
-		);
+		const { data, error }: PostgrestResponse<User> = await this.supabase
+			.from("users")
+			.select("*")
+			.eq("refresh_token", token);
 
-		return user;
+		if (error !== null || data === null) {
+			return new DatabaseError(`Failed to retrieve user by token: ${error.message}`, "DB_ERROR");
+		}
+
+		if (data.length > 0) {
+			return new DatabaseError("User not found", "USER_NOT_FOUND");
+		}
+
+		return data[0]!;
 	}
 
-	async removeRefreshTokenFromUser(userId: number): Promise<void> {
-		if (!this.db) {
-			throw new Error("Database not connected");
+	async removeRefreshTokenFromUser(id: number): Promise<void | DatabaseError> {
+		if (!id) {
+			return new DatabaseError("ID is required", "MISSING_USER_ID");
 		}
 
-		await this.db.run("UPDATE users SET refresh_token = NULL WHERE id = ?", userId);
+		const { error } = await this.supabase.from("users").upsert([{ id: id, refresh_token: null }]);
+
+		if (error !== null) {
+			return new DatabaseError(
+				`Failed to remove token from user with ID: ${error.message}`,
+				"DB_ERROR"
+			);
+		}
 	}
 }
 
-export default new UserModel();
+export default new UserModel(config.database.connection);
