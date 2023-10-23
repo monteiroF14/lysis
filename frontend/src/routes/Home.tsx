@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
 
+import { Link } from "react-router-dom";
+        
 function Home() {
 	document.title = "Lysis - The World's Greatest Website for Movies, Series & More.";
 

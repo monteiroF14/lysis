@@ -1,3 +1,4 @@
+
 import { RegisterForm } from "../components/Register/RegisterForm";
 import { Heading } from "../components/ui/Heading";
 
@@ -18,4 +19,4 @@ export function Register() {
 	);
 }
 
-export default Register;
+
