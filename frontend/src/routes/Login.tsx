@@ -1,5 +1,7 @@
+
+import { LoginForm } from "../components/Login/LoginForm";
 import { Heading } from "../components/ui/Heading";
-import { LoginForm } from "../components/ui/login/LoginForm";
+
 
 export function Login() {
 	return (

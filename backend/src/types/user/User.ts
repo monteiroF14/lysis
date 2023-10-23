@@ -2,20 +2,21 @@ import { Email } from "./Email";
 import { Password } from "./Password";
 
 export type UserData = {
+	username: string;
 	email: string;
 	password: string;
 };
 
-export class User {
+class User {
 	public readonly username: string;
 	public readonly email: Email;
-	private password?: Password;
+	private _password?: Password;
 	public id?: number;
 
 	private constructor(username: string, email: Email, password?: Password) {
 		this.username = username;
 		this.email = email;
-		this.password = password;
+		this._password = password;
 	}
 
 	static create(userData: UserData): User {
@@ -43,13 +44,17 @@ export class User {
 	}
 
 	changePassword(newPassword: string): void | Error {
-		if (!this.password) return new Error("No password to be changed");
+		if (!this._password) return new Error("No password to be changed");
 
-		this.password = Password.create(newPassword);
+		this._password = Password.create(newPassword);
 	}
 
-	get getPassword(): Password | undefined {
-		return this.password;
+	get password(): Password | undefined {
+		return this._password;
+	}
+
+	set password(password: Password | undefined) {
+		this._password = password;
 	}
 
 	set addDbID(id: number) {
@@ -64,11 +69,21 @@ export class User {
 		};
 	}
 
-	async comparePassword(candidatePassword: string): Promise<boolean> {
-		if (!this.password) {
+	toDatabaseObject(): any {
+		return {
+			username: this.username,
+			email: this.email.value,
+			password: this._password ? this._password.value : null,
+		};
+	}
+
+	static async comparePassword(userPassword: string, candidatePassword: string): Promise<boolean> {
+		if (!userPassword) {
 			return false;
 		}
 
-		return this.password.compare(candidatePassword);
+		return Password.compare(userPassword, candidatePassword);
 	}
 }
+
+export default User;

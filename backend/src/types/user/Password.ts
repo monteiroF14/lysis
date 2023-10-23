@@ -39,7 +39,7 @@ export class Password {
 		return true;
 	}
 
-	async compare(candidatePassword: string): Promise<boolean> {
-		return bcrypt.compare(candidatePassword, this.password);
+	static compare(userPassword: string, candidatePassword: string): Promise<boolean> {
+		return bcrypt.compare(candidatePassword, userPassword);
 	}
 }
