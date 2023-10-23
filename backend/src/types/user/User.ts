@@ -13,7 +13,15 @@ class User {
 	private _password?: Password;
 	public id?: number;
 
-	private constructor(username: string, email: Email, password?: Password) {
+	constructor({
+		username,
+		email,
+		password,
+	}: {
+		username: string;
+		email: Email;
+		password?: Password;
+	}) {
 		this.username = username;
 		this.email = email;
 		this._password = password;
@@ -21,19 +29,15 @@ class User {
 
 	static create(userData: UserData): User {
 		try {
-			const emailString = userData.email;
-			const passwordString = userData.password;
-			const email = Email.create(emailString);
-			const password = Password.create(passwordString);
-			const username = this.getUsername(emailString);
+			const email = Email.create(userData.email);
+			const password = Password.create(userData.password);
+			const username = this.getUsername(userData.email);
 
-			return new User(username, email, password);
+			return new User({ username, email, password });
 		} catch (error) {
 			if (error instanceof Error && error.message) {
 				console.error(error.message);
 			}
-
-			console.log("userData", userData);
 
 			throw new Error("Failed to create user");
 		}
