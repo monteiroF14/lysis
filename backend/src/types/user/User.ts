@@ -1,6 +1,6 @@
-import { PERMISSIONS, ROLE_PERMISSIONS, SYSTEM_ROLES } from "../../config/permissions";
-import { Email } from "./Email";
-import { Password } from "./Password";
+import { SYSTEM_ROLES, PERMISSIONS, ROLE_PERMISSIONS } from "config/permissions";
+import Email from "./Email";
+import Password from "./Password";
 
 export type UserData = {
 	username: string;

@@ -1,6 +1,6 @@
-import { SYSTEM_ROLES } from "../../config/permissions";
-import type { Email } from "./Email";
-import type { Password } from "./Password";
+import { SYSTEM_ROLES } from "config/permissions";
+import type Email from "./Email";
+import type Password from "./Password";
 import User from "./User";
 
 class Admin extends User {

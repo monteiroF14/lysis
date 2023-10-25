@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 
-export class Password {
+class Password {
 	private readonly password: string;
 
 	private constructor(password: string) {
@@ -43,3 +43,5 @@ export class Password {
 		return bcrypt.compare(candidatePassword, userPassword);
 	}
 }
+
+export default Password;
