@@ -1,14 +1,14 @@
 import { SupabaseClient, type PostgrestResponse } from "@supabase/supabase-js";
-import User from "../types/user/User";
-import { DatabaseError } from "../types/database/error";
-import config from "../config";
-import type { SYSTEM_ROLES } from "../config/permissions";
+import config from "config";
+import type { SYSTEM_ROLES } from "config/permissions";
+import { DatabaseError } from "types/database/error";
+import type User from "types/user/User";
 
 class UserModel {
 	private supabase: SupabaseClient;
 
-	constructor(supabase: SupabaseClient) {
-		this.supabase = supabase;
+	constructor() {
+		this.supabase = config.database.connection;
 	}
 
 	async createUser(user: User): Promise<User | DatabaseError> {
@@ -176,4 +176,4 @@ class UserModel {
 	}
 }
 
-export default new UserModel(config.database.connection);
+export default new UserModel();
