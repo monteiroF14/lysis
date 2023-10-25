@@ -3,7 +3,7 @@ import type { Express } from "express";
 import dotenv from "dotenv";
 import config from "./config";
 import cors from "cors";
-import router from "./routes/router";
+import router from "routes";
 
 dotenv.config();
 
