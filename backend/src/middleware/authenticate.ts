@@ -1,11 +1,5 @@
+import type { NextFunction, Request, Response } from "express";
 import jwt, { type VerifyErrors } from "jsonwebtoken";
-import type { Request, Response, NextFunction } from "express";
-import User from "../types/user/User";
-import type Admin from "../types/user/Admin";
-
-export interface RequestUserAuth extends Request {
-	user: User | Admin;
-}
 
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
 	const authHeader = req.header("Authorization");
@@ -21,7 +15,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 				return res.sendStatus(403);
 			}
 
-			(req as RequestUserAuth).user = user;
+			req.user = user;
 			next();
 		});
 	} catch (error) {

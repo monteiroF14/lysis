@@ -1,12 +1,11 @@
+import type { PERMISSIONS } from "config/permissions";
 import type { Request, Response, NextFunction } from "express";
-import type { PERMISSIONS } from "../config/permissions";
-import Admin from "../types/user/Admin";
-import User from "../types/user/User";
-import type { RequestUserAuth } from "./authenticate";
+import Admin from "types/user/Admin";
+import User from "types/user/User";
 
 export function checkPermission(permissions: PERMISSIONS[]) {
 	return (req: Request, res: Response, next: NextFunction) => {
-		const user = (req as RequestUserAuth).user;
+		const user = req.user;
 
 		for (const permission of permissions) {
 			if (user instanceof Admin && user.hasPermission(permission)) {
