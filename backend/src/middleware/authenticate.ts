@@ -1,9 +1,10 @@
 import jwt, { type VerifyErrors } from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
 import User from "../types/user/User";
+import type Admin from "../types/user/Admin";
 
-interface RequestUserAuth extends Request {
-	user: User;
+export interface RequestUserAuth extends Request {
+	user: User | Admin;
 }
 
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
