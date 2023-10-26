@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
-import UserModel from "services/UserService";
+import UserService from "services/UserService";
 
-export async function getAllUsers(req: Request, res: Response): Promise<void> {
+export async function getAllUsers(req: Request, res: Response) {
 	try {
-		const users = await UserModel.getAllUsers();
+		const users = await UserService.getAllUsers();
 		res.json(users);
 	} catch (error) {
 		console.error(error);

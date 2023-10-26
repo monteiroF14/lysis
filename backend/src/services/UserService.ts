@@ -50,7 +50,7 @@ class UserService {
 		return data;
 	}
 
-	async getUserById(id: number): Promise<UserModel | DatabaseError> {
+	async getUserById(id: string): Promise<UserModel | DatabaseError> {
 		if (!id) {
 			return new DatabaseError("ID is required", "MISSING_ID");
 		}
@@ -92,7 +92,7 @@ class UserService {
 		return data[0]!;
 	}
 
-	async deleteUser(id: number): Promise<void | DatabaseError> {
+	async deleteUser(id: string): Promise<void | DatabaseError> {
 		if (!id) {
 			return new DatabaseError("ID is required", "MISSING_ID");
 		}

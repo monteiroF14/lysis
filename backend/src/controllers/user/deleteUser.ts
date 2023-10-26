@@ -1,11 +1,9 @@
 import type { Request, Response } from "express";
-import UserModel from "services/UserService";
+import UserService from "services/UserService";
 
 export async function deleteUser(req: Request, res: Response) {
-	const userId = parseInt(req.params.id!, 10);
-
 	try {
-		await UserModel.deleteUser(userId);
+		await UserService.deleteUser(req.params.id!);
 		res.status(204).end();
 	} catch (error) {
 		console.error(error);
