@@ -1,10 +1,11 @@
-import type Admin from "types/user/Admin";
-import type User from "types/user/User";
+import type UserModel from "models/UserModel";
+import type { JwtPayload } from "types/JwtPayload";
 
 declare global {
 	namespace Express {
 		export interface Request {
-			user: User | Admin;
+			jwtPayload: JwtPayload;
+			user: UserModel;
 		}
 	}
 }
