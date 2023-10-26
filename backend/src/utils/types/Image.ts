@@ -8,12 +8,14 @@ class Image {
 	}
 
 	isValidImage(dataUrl: string) {
-		const dataUrlPattern = /^data:image\/(png|jpeg|jpg|gif);base64,/;
-		if (!dataUrlPattern.test(dataUrl)) {
-			return false;
-		}
+		const urlPattern = /^https:\/\/example\.com\/images\/[\w.-]+\.png$/;
+		return urlPattern.test(dataUrl);
+	}
 
-		return true;
+	getImageNameFromUrl(): string {
+		const parts = this.dataUrl.split("/");
+		const imageName = parts[parts.length - 1];
+		return imageName!;
 	}
 }
 
