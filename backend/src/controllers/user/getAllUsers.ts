@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import UserModel from "models/UserModel";
+import UserModel from "services/UserService";
 
 export async function getAllUsers(req: Request, res: Response): Promise<void> {
 	try {

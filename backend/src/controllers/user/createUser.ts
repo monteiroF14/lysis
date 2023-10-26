@@ -1,10 +1,9 @@
 import type { Request, Response } from "express";
-import UserModel from "models/UserModel";
+import UserModel from "services/UserService";
 
 export async function createUser(req: Request, res: Response) {
 	try {
-		const userData = req.body;
-		const newUser = await UserModel.createUser(userData);
+		const newUser = await UserModel.createUser(req.body);
 		res.status(201).json(newUser);
 	} catch (error) {
 		console.error(error);

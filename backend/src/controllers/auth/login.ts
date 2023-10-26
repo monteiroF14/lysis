@@ -1,41 +1,38 @@
 import type { Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import type { JwtPayload } from "types/JwtPayload";
+import { DatabaseError } from "utils/response/DatabaseError";
+import { createJwtToken } from "utils/createJwtToken";
+import UserService from "services/UserService";
 import UserModel from "models/UserModel";
-import { DatabaseError } from "types/database/error";
-import User from "types/user/User";
-import { generateAccessToken } from "./generateAccessToken";
 
 export async function login(req: Request, res: Response) {
 	const { email, password } = req.body;
 
-	const user = await UserModel.getUserByEmail(email);
+	const user = await UserService.getUserByEmail(email);
 
 	if (user instanceof DatabaseError) {
 		return res.status(401).json({ error: "Invalid credentials" });
 	}
 
-	if (!user || !User.comparePassword(user.password?.value!, password)) {
+	if (!user || !UserModel.comparePassword(user.password?.value!, password)) {
 		return res.status(401).json({ error: "Invalid credentials" });
 	}
 
-	const expirationDate = Date.now() + 15 * 60 * 1000;
-
-	const payload = {
-		id: user.id,
+	const jwtPayload: JwtPayload = {
+		id: user.id!,
+		username: user.username,
 		email: user.email,
-		expiration: expirationDate,
+		role: user.role,
 	};
 
-	const accessToken = generateAccessToken(payload);
-	const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET!);
+	try {
+		const token = createJwtToken(jwtPayload);
 
-	await UserModel.addRefreshTokenToUser({
-		token: refreshToken,
-		id: payload.id!,
-	});
+		res.header("Authorization", `Bearer ${token}`);
+		res.cookie("refreshToken", token, { httpOnly: true });
 
-	res.header("Authorization", `Bearer ${accessToken}`);
-	res.cookie("refreshToken", refreshToken, { httpOnly: true });
-
-	res.status(200).json({ message: "Logged in successfully", user: user.flatUserData() });
+		res.status(200).json({ message: "Logged in successfully", user });
+	} catch {
+		res.status(401).json({ message: "Token couldn't be created." });
+	}
 }

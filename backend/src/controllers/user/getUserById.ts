@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import UserModel from "models/UserModel";
+import UserModel from "services/UserService";
 
 export async function getUserById(req: Request, res: Response) {
 	const userId = parseInt(req.params.id!, 10);

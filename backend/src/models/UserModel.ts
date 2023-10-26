@@ -1,179 +1,86 @@
-import { SupabaseClient, type PostgrestResponse } from "@supabase/supabase-js";
-import config from "config";
-import type { SYSTEM_ROLES } from "config/permissions";
-import { DatabaseError } from "types/database/error";
-import type User from "types/user/User";
+import { SYSTEM_ROLES } from "config/permissions";
+import Email from "utils/types/Email";
+import Password from "utils/types/Password";
 
 class UserModel {
-	private supabase: SupabaseClient;
+	public readonly username: string;
+	public readonly email: Email;
+	private _password?: Password;
+	public id?: string;
 
-	constructor() {
-		this.supabase = config.database.connection;
-	}
+	private _role = SYSTEM_ROLES.APPLICATION_USER;
 
-	async createUser(user: User): Promise<User | DatabaseError> {
-		if (!user) {
-			return new DatabaseError("User is required", "MISSING_USER");
-		}
-
-		if (!user.password || !user.email) {
-			return new DatabaseError(
-				"Both password and email are required",
-				"MISSING_PASSWORD_AND_EMAIL"
-			);
-		}
-
-		const userObject = user.toDatabaseObject();
-
-		const { data, error } = await this.supabase.from("users").insert([userObject]).select();
-
-		if (error !== null) {
-			return new DatabaseError(`Failed to create user: ${error.message}`, "DB_ERROR");
-		}
-
-		if (data === null) {
-			return new DatabaseError("Failed to create user: No data returned", "DB_ERROR");
-		}
-
-		return data[0]!;
-	}
-
-	async getAllUsers(): Promise<User[] | DatabaseError> {
-		const { data, error } = await this.supabase.from("users").select("*");
-
-		if (error !== null) {
-			return new DatabaseError(`Failed to retrieve users: ${error.message}`, "DB_ERROR");
-		}
-
-		if (data === null) {
-			return new DatabaseError("Failed to retrieve users", "DB_ERROR");
-		}
-
-		return data;
-	}
-
-	async getUserById(id: number): Promise<User | DatabaseError> {
-		if (!id) {
-			return new DatabaseError("ID is required", "MISSING_ID");
-		}
-
-		const { data, error }: PostgrestResponse<User> = await this.supabase
-			.from("users")
-			.select("*")
-			.eq("id", id);
-
-		if (error !== null || data === null) {
-			return new DatabaseError(`Failed to retrieve user by ID: ${error.message}`, "DB_ERROR");
-		}
-
-		if (data.length > 0) {
-			return new DatabaseError("User not found", "USER_NOT_FOUND");
-		}
-
-		return data[0]!;
-	}
-
-	async getUserByEmail(email: string): Promise<User | DatabaseError> {
-		if (!email) {
-			return new DatabaseError("Email is required", "MISSING_EMAIL");
-		}
-
-		const { data, error }: PostgrestResponse<User> = await this.supabase
-			.from("users")
-			.select("*")
-			.eq("email", email);
-
-		if (error !== null || data === null) {
-			return new DatabaseError(`Failed to retrieve user by email: ${error.message}`, "DB_ERROR");
-		}
-
-		if (data.length > 0) {
-			return new DatabaseError("User not found", "USER_NOT_FOUND");
-		}
-
-		return data[0]!;
-	}
-
-	async deleteUser(id: number): Promise<void | DatabaseError> {
-		if (!id) {
-			return new DatabaseError("ID is required", "MISSING_ID");
-		}
-
-		const { error } = await this.supabase.from("users").delete().eq("id", id);
-
-		if (error !== null) {
-			return new DatabaseError(`Failed to delete user with ID: ${error.message}`, "DB_ERROR");
-		}
-	}
-
-	async updateUserRole(id: number, role: keyof typeof SYSTEM_ROLES) {
-		if (!id || !role) {
-			return new DatabaseError("ID and role are required", "MISSING_ID_ROLE");
-		}
-
-		const { error } = await this.supabase.from("users").update({ role }).eq("id", id);
-
-		if (error !== null) {
-			return new DatabaseError(`Failed to update user role: ${error.message}`);
-		}
-	}
-
-	async addRefreshTokenToUser({
-		token,
-		id,
+	constructor({
+		username,
+		email,
+		password,
 	}: {
-		token: string;
-		id: number;
-	}): Promise<void | DatabaseError> {
-		if (!token || !id) {
-			return new DatabaseError("Token and ID are required", "MISSING_TOKEN_ID");
-		}
+		username: string;
+		email: Email;
+		password: Password;
+	}) {
+		this.username = username;
+		this.email = email;
+		this._password = password;
+	}
 
-		const { error } = await this.supabase
-			.from("users")
-			.update({ refresh_token: token })
-			.eq("id", id);
+	static create({
+		username,
+		email,
+		password,
+	}: {
+		username: string;
+		email: Email;
+		password: Password;
+	}): UserModel {
+		try {
+			return new UserModel({
+				username: this.getUsername(email.value),
+				email: Email.create(email.value),
+				password: Password.create(password.value),
+			});
+		} catch (error) {
+			if (error instanceof Error && error.message) {
+				console.error(error.message);
+			}
 
-		if (error !== null) {
-			return new DatabaseError(`Failed to add token to user with ID: ${error.message}`, "DB_ERROR");
+			throw new Error("Failed to create user");
 		}
 	}
 
-	async getUserByRefreshToken(token: string): Promise<User | DatabaseError> {
-		if (!token) {
-			return new DatabaseError("Token is required", "MISSING_TOKEN");
-		}
-
-		const { data, error }: PostgrestResponse<User> = await this.supabase
-			.from("users")
-			.select("*")
-			.eq("refresh_token", token);
-
-		if (error !== null || data === null) {
-			return new DatabaseError(`Failed to retrieve user by token: ${error.message}`, "DB_ERROR");
-		}
-
-		if (data.length > 0) {
-			return new DatabaseError("User not found", "USER_NOT_FOUND");
-		}
-
-		return data[0]!;
+	static getUsername(email: string): string {
+		return email.split("@")[0] || "";
 	}
 
-	async removeRefreshTokenFromUser(id: number): Promise<void | DatabaseError> {
-		if (!id) {
-			return new DatabaseError("ID is required", "MISSING_USER_ID");
+	changePassword(newPassword: string): void | Error {
+		if (!this._password) return new Error("No password to be changed");
+
+		this._password = Password.create(newPassword);
+	}
+
+	get role(): keyof typeof SYSTEM_ROLES {
+		return this._role;
+	}
+
+	get password(): Password | undefined {
+		return this._password;
+	}
+
+	set password(password: Password | undefined) {
+		this._password = password;
+	}
+
+	set addDbID(id: string) {
+		this.id = id;
+	}
+
+	static async comparePassword(userPassword: string, candidatePassword: string): Promise<boolean> {
+		if (!userPassword) {
+			return false;
 		}
 
-		const { error } = await this.supabase.from("users").upsert([{ id: id, refresh_token: null }]);
-
-		if (error !== null) {
-			return new DatabaseError(
-				`Failed to remove token from user with ID: ${error.message}`,
-				"DB_ERROR"
-			);
-		}
+		return Password.compare(userPassword, candidatePassword);
 	}
 }
 
-export default new UserModel();
+export default UserModel;
