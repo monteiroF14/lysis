@@ -7,7 +7,7 @@ const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_AP
 
 export default {
 	server: {
-		port: 3000,
+		port: process.env.PORT || 3000,
 	},
 	database: {
 		connection: supabase,
