@@ -39,6 +39,11 @@ class Password {
 		return true;
 	}
 
+	static async hash(password: string): Promise<string> {
+		const saltRounds = 10;
+		return bcrypt.hash(password, saltRounds);
+	}
+
 	static compare(userPassword: string, candidatePassword: string): Promise<boolean> {
 		return bcrypt.compare(candidatePassword, userPassword);
 	}
