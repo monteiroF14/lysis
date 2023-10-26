@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
-import PostService from "services/PostService";
+import { createPost as createPostService } from "services/post";
 
 export async function createPost(req: Request, res: Response) {
 	try {
-		const newPost = await PostService.createPost(req.body);
+		const newPost = await createPostService(req.body);
 		res.status(201).json(newPost);
 	} catch (error) {
 		console.error(error);

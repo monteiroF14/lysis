@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
-import UserService from "services/UserService";
+import { getUserById as getUserByIdService } from "services/user";
 
 export async function getUserById(req: Request, res: Response) {
 	try {
-		const user = await UserService.getUserById(req.params.id!);
+		const user = await getUserByIdService(req.params.id!);
 
 		if (!user) {
 			res.status(404).json({ message: "User not found" });

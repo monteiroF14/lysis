@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
-import PostService from "services/PostService";
+import { getAllPosts as getAllPostsService } from "services/post";
 
 export async function getAllPosts(req: Request, res: Response): Promise<void> {
 	try {
-		const posts = await PostService.getAllPosts();
+		const posts = await getAllPostsService();
 		res.json(posts);
 	} catch (error) {
 		console.error(error);

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import UserModel from "models/UserModel";
-import UserService from "services/UserService";
+import { createUser } from "services/user";
 
 export async function register(req: Request, res: Response) {
 	const newUser = await UserModel.create({
@@ -9,7 +9,7 @@ export async function register(req: Request, res: Response) {
 		username: UserModel.getUsername(req.body.email),
 	});
 
-	const user = await UserService.createUser(newUser);
+	const user = await createUser(newUser);
 
 	if (user instanceof Error) {
 		return res.status(400).json({ error: "Could not create user" });

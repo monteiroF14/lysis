@@ -2,13 +2,13 @@ import type { Request, Response } from "express";
 import type { JwtPayload } from "types/JwtPayload";
 import { DatabaseError } from "utils/response/DatabaseError";
 import { createJwtToken } from "utils/createJwtToken";
-import UserService from "services/UserService";
 import UserModel from "models/UserModel";
+import { getUserByEmail } from "services/user";
 
 export async function login(req: Request, res: Response) {
 	const { email, password } = req.body;
 
-	const user = await UserService.getUserByEmail(email);
+	const user = await getUserByEmail(email);
 
 	if (user instanceof DatabaseError) {
 		return res.status(401).json({ error: "Invalid credentials" });

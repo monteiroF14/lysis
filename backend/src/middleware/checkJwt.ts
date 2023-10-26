@@ -1,8 +1,8 @@
 import { createJwtToken } from "utils/createJwtToken";
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import UserModel from "services/UserService";
 import type { JwtPayload } from "types/JwtPayload";
+import { addRefreshTokenToUser } from "services/user";
 
 export async function checkJwt(req: Request, res: Response, next: NextFunction) {
 	const authHeader = req.header("Authorization");
@@ -23,7 +23,7 @@ export async function checkJwt(req: Request, res: Response, next: NextFunction) 
 	try {
 		const newToken = createJwtToken(req.jwtPayload);
 
-		await UserModel.addRefreshTokenToUser({
+		await addRefreshTokenToUser({
 			token: newToken,
 			id: req.jwtPayload.id,
 		});
