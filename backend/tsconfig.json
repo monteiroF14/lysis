@@ -1,5 +1,5 @@
 {
-	"ts-node": { "esm": true },
+	"ts-node": { "esm": true, "require": ["tsconfig-paths/register"] },
 	"compilerOptions": {
 		// base options
 		"esModuleInterop": true,
@@ -23,6 +23,7 @@
 		"lib": ["es2022"],
 
 		// idk
-		"baseUrl": "src/"
+		"baseUrl": "src/",
+		"typeRoots": ["./src/types", "./node_modules/@types"]
 	}
 }
