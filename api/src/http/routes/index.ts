@@ -2,8 +2,8 @@ import Elysia from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { authorization } from "http/plugins/authorization";
 import { auth } from "http/routes/auth";
-import { dashboard } from "http/pages/Dashboard";
-import { route_not_found } from "http/pages/RouteNotFound";
+import { dashboard } from "http/pages/dashboard";
+import { route_not_found } from "http/pages/route-not-found";
 
 const elysia = new Elysia();
 
