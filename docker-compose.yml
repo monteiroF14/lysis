@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      args:
+        - DB_URL=$DB_URL
+        - JWT_SECRET_KEY=$JWT_SECRET_KEY
+        - RESEND_API_KEY=$RESEND_API_KEY
+        - OAUTH_CLIENT_ID=$OAUTH_CLIENT_ID
+        - OAUTH_CLIENT_SECRET=$OAUTH_CLIENT_SECRET
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    restart: always
+    ports:
+      - "$POSTGRES_PORT:5432"
+    environment:
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+    volumes:
+      - postgres_data:/bitnami/postgresql
+
+volumes:
+  postgres_data:
