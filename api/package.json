@@ -1,21 +1,39 @@
 {
-	"name": "lysis-api",
-	"version": "1.0.0",
-	"license": "MIT",
-	"scripts": {
-		"lint": "biome lint --apply-unsafe  ./src",
-		"dev": "bun run --watch src/http/server.ts"
-	},
-	"author": "monteiroF14 <andremonteiro877@gmail.com>",
-	"dependencies": {
-		"@react-email/components": "^0.0.12",
-		"elysia": "latest",
-		"resend": "^2.0.0",
-		"zod": "^3.22.4"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "1.4.1",
-		"@types/react": "^18.2.45",
-		"bun-types": "latest"
-	}
+  "name": "lysis-api",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "generate": "drizzle-kit generate:pg",
+    "seed": "bun ./src/db/seed.ts",
+    "migrate": "bun ./src/db/migrate.ts",
+    "lint": "biome lint --apply-unsafe  ./src",
+    "dev": "bun --watch ./src/http/server.ts"
+  },
+  "author": "monteiroF14 <andremonteiro877@gmail.com>",
+  "dependencies": {
+    "@elysiajs/cookie": "^0.8.0",
+    "@elysiajs/cors": "0.7.2",
+    "@elysiajs/html": "^0.8.0",
+    "@elysiajs/jwt": "^0.8.0",
+    "@elysiajs/swagger": "^0.8.0",
+    "@faker-js/faker": "^8.3.1",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@react-email/components": "0.0.12",
+    "@types/react-dom": "^18.2.18",
+    "drizzle-orm": "0.29.2",
+    "elysia": "latest",
+    "googleapis": "129.0.0",
+    "postgres": "3.4.3",
+    "react": "18.2.0",
+    "react-dom": "^18.2.0",
+    "resend": "2.0.0",
+    "zod": "3.22.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.4.1",
+    "@types/react": "18.2.45",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.20.9",
+    "pg": "8.11.3"
+  }
 }
